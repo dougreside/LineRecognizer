@@ -83,7 +83,7 @@ else{
 	"<div>lh: minimum line height</div>".
 	"<div>lnum: number of lines in transcript</div>".
 
-	"<div>example: http://PATH/lineRecognizer.php?ct=i&url=./ham.jpg&t=200&b=1900&l=500&r=1500&lh=20&lnum=38</div>";
+	"<div>example: http://PATH/lineRecognizer.php?ct=i&url=./ham.jpg&t=200&b=1900&l=500&r=1500&lh=20&lnum=38</div>".
 		"<hr/>".
 		"<div>Experimental:</div>".
 		"<div>alg: algorithm [simple|min] Simple algorithm or one based on local mins</div>".
