@@ -36,38 +36,7 @@ class imageOCR {
 		$this->scalewidth = isset ($args['scalewidth']) ? $args['scalewidth'] : null;
 		$this->scaleheight = isset ($args['scaleheight']) ? $args['scaleheight'] : null;
 	}
-	public function img2arr() {
-
-		$imgArray = array ();
-		$hist = array ();
-
-		$image_width = imagesx($this->image);
-		$image_height = imagesy($this->image);
-		$this->width = $this->right - $this->left;
-		/*	for ($i=0;$i<$MAXVAL;$i++){
-					$this->hist[$i]=0;
-			}*/
-		for ($y = $this->top; $y < $this->bottom; $y++) {
-
-			// iterate through y axis
-			$imgArray[$y] = array ();
-			for ($x = $this->left; $x < $this->right; $x++) {
-				// look at current pixel
-				$rgb = imagecolorat($this->image, $x, $y);
-				$r = ($rgb >> 16) & 0xFF;
-				//$pixel_color = imagecolorsforindex($image, $rgb);
-				$imgArray[$y][$x] = $r;
-				$this->hist[$r]++;
-			}
-		}
-		$totalArr = array (
-			$imgArray,
-			$this->hist
-		);
-		return $totalArr;
-
-	}
-
+	
 	public function binarize() {
 		#imagefilter($this->image,IMG_FILTER_GRAYSCALE);
 		for ($y = $this->top; $y < $this->bottom; $y++) {
@@ -101,81 +70,25 @@ class imageOCR {
 	}
 
 	public function displayLines($lines) {
-		#var_dump($lines);
-		#echo"<br/>";
-		if ($this->image) {
+	
 
-			#$scale=(isset($this->scalewidth)&&isset($this->scaleheight))?true:false;
+		if ($this->image) {
 			$width = $this->right - $this->left;
 
 			for ($y = $this->top; $y < $this->bottom; $y++) {
 				$blackdots = 0;
 				if (in_array($y, $lines)) {
-
-					#	echo $y.",";
 					imageline($this->image, $this->left, $y, $this->left + $width, $y +1, imagecolorexact($this->image, 255, 0, 0));
 
 				}
-				/*
-				// iterate through y axis
-				for ($x = $this->left; $x < $this->right; $x++) {
-				    // look at current pixel
-				   $pixel_color = imagecolorat($this->image, $x, $y);
-					
-					// test threshold 8500000
-				    if (in_array($y,$lines)) {
-				    	
-							imagesetpixel($this->image, $x, $y, imagecolorexact($this->image,255,0,0));
-				   
-					}
-					
-					
-					
-				}	
-				*/
+				
 			}
 
 		}
 	}
-	public function visDots($lines) {
-		#var_dump($lines);
-		#echo"<br/>";
-		if ($this->image) {
+	
+	public function printLines($lines) {
 
-			#$scale=(isset($this->scalewidth)&&isset($this->scaleheight))?true:false;
-			$width = $this->right - $this->left;
-
-			for ($y = $this->top; $y < $this->bottom; $y++) {
-				$blackdots = 0;
-
-				#	echo $y.",";
-				imageline($this->image, $this->left, $y, $this->left + ($this->rowDots[$y] / 10), $y +1, imagecolorexact($this->image, 255, 0, 0));
-
-				/*
-				// iterate through y axis
-				for ($x = $this->left; $x < $this->right; $x++) {
-				    // look at current pixel
-				   $pixel_color = imagecolorat($this->image, $x, $y);
-					
-					// test threshold 8500000
-				    if (in_array($y,$lines)) {
-				    	
-							imagesetpixel($this->image, $x, $y, imagecolorexact($this->image,255,0,0));
-				   
-					}
-					
-					
-					
-				}	
-				*/
-			}
-
-		}
-	}
-	public function printLines() {
-		$this->binarize();
-
-		$lines = $this->getLines();
 		
 		$ys = "";
 		foreach ($lines as $key=>$val){
@@ -184,11 +97,6 @@ class imageOCR {
 		$ys = substr($ys,1);
 		 $ys= "{'lines':[".$ys."]}";
 		echo $ys;
-	}
-	protected function testColor() {
-		header("Content-Type: image/png");
-		imagepng($this->image);
-		imagedestroy($this->image);
 	}
 
 	public function close() {
@@ -256,18 +164,87 @@ class imageOCR {
 		ksort($this->rowDots);
 		$redlines = array();
 		$last = null;
+		$plast = null;
 		$mins = array();
 		foreach ($this->rowDots as $key=>$value){
 			if (isset($last)){
-				$diff = $value-$last;
-				if ($last>0){
-					$mins[]=array($key=>$value);
+				
+				
+				if (isset($plast)){
+				
+				$pdiff = $last["value"]-$plast["value"];
+				$ndiff = $last["value"]-$value;
+				
+				#echo $last["key"]." : ". $last["value"]." | ".$pdiff." \/ ".$ndiff;
+						
+				if (($pdiff>0)&&($ndiff>0)){
+				#	echo " SAVED";
+					$mkey = $last["key"];
+					$mval = $last["value"];
+					$mins[$mkey]=$mval;
+					#$mins[]=$mkey;
 				}	
-			}
-			$last = $value;
+				}
+				$plast = $last;
+				#echo "<br/>";
+		}
+			
+			$last = array("key"=>$key,"value"=>$value);
+			
 			
 		}
-		 
+		asort($mins);
+		
+	
+	
+		$lastKey = 0;
+		$redlines = array ();
+		foreach ($mins as $key => $value) {
+			if (count($redlines) >= $this->targetsize) {
+				break;
+			} else {
+				$found = false;
+				for ($i = 0; $i < count($redlines); $i++) {
+					if ($key < $redlines[$i]) {
+						if (($redlines[$i] - $key) < $this->gap) {
+							if ($value < $mins[$redlines[$i]]) {
+								$redlines[$i] = $key;
+							}
+						} else{
+							if (($i>0)&&(($key - $redlines[$i - 1]) < $this->gap)) {
+								if ($value < $mins[$redlines[$i -1]]) {
+									$redlines[$i -1] = $key;
+								}
+							} else {
+								array_splice($redlines, $i, 0, $key);
+
+							}
+						}	
+						$found = true;
+
+					}
+				}
+				if (!$found) {
+					$i = count($redlines) - 1;
+					if (($i>0)&&(($key - $redlines[$i]) < $this->gap)) {
+						if ($value < $mins[$redlines[$i]]) {
+							$redlines[$i -1] = $key;
+						}
+					} else {
+
+						$redlines[] = $key;
+					}
+				}
+			}
+		
+		}
+		
+		
+		
+		
+		
+		return $redlines;
+		
 	}
 	public function getLines() {
 
