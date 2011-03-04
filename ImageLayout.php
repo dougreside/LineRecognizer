@@ -79,12 +79,12 @@ class imageOCR {
 		if ($this->image) {
 			$width = $this->right - $this->left;
 
-			for ($y = $this->top; $y < $this->bottom; $y++) {
-				$blackdots = 0;
-				if (in_array($y, $lines)) {
-					imageline($this->image, $this->left, $y, $this->left + $width, $y +1, imagecolorexact($this->image, 255, 0, 0));
+			#for ($y = $this->top; $y < $this->bottom; $y++) {
+			for ($y = 0; $y < count($lines); $y++) {
+				
+					imageline($this->image, $this->left, $lines[$y], $this->left + $width, $lines[$y], imagecolorexact($this->image, 255, 0, 0));
 
-				}
+				
 				
 			}
 
