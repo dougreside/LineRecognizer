@@ -69,7 +69,7 @@ class imageOCR {
 	}
 
 	public function binarize() {
-		imagefilter($this->image,IMG_FILTER_GRAYSCALE);
+		#imagefilter($this->image,IMG_FILTER_GRAYSCALE);
 		for ($y = $this->top; $y < $this->bottom; $y++) {
 
 			$this->rowDots[$y] = 0;
@@ -80,8 +80,12 @@ class imageOCR {
 				$pixel_color = imagecolorat($this->image, $x, $y);
 
 				$r = ($pixel_color >> 16) & 0xFF;
+				$g = ($pixel_color >> 8) & 0xFF;
+            	$b = $pixel_color & 0xFF;
+            	$avg = ($r+$g+$b)/3;
+            	
 				// test threshold 8500000
-				if (($r <= $this->threshold) && ($r >= 0)) {
+				if (($avg <= $this->threshold) && ($avg >= 0)) {
 					imagesetpixel($this->image, $x, $y, imagecolorexact($this->image, 0, 0, 0));
 					$this->rowDots[$y]++;
 
