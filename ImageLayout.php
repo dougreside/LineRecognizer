@@ -20,6 +20,7 @@ class imageOCR {
 	public $rowDots = array ();
 	public $lines = array ();
 	public $gap = 30;
+	public $mdpr = 5; // min dots per row;
 	public function showImage() {
 		imagejpeg($this->image);
 	}
@@ -63,6 +64,9 @@ class imageOCR {
 
 				}
 
+			}
+			if (($this->mdpr>0)&&($this->rowDots[$y]<$this->mdpr)){ 
+				$this->rowDots[$y]=0;		
 			}
 		}
 		#var_dump($this->rowDots);

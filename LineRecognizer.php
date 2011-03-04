@@ -12,7 +12,7 @@ $threshold = $_GET["thresh"];
 $lh = $_GET["lh"];
 $lnum = $_GET["lnum"];
 $alg = $_GET["alg"];
-
+$mdpr = $_GET["mdpr"];
 if (isset($url)){
 
 if (!(isset($top))){
@@ -39,13 +39,16 @@ $lnum = 38;
 if (!(isset($alg))){
 $alg = "simple";
 }
-
+if (!(isset($mdpr))){
+$mdpr = 0;
+}
 
 
 $iocr = new imageOCR();
 $dims = array("top"=>$top,"bottom"=>$bottom,"right"=>$right,"left"=>$left);
 $iocr->LoadImg($url,$threshold,$dims);
-$iocr->targetsize = $lnum; 
+$iocr->targetsize = $lnum;
+$iocr->mdpr = $mdpr;  
 $targetsize = $lnum;
 $gap = $lh;
 
@@ -78,8 +81,13 @@ else{
 	"<div>r: right of region rectangle</div>".
 	"<div>thresh: greyscale pixel color threshold for turning white or black [0-255]</div>".
 	"<div>lh: minimum line height</div>".
-	"<div>lnum: number of lines in transcript</div><br/>".
+	"<div>lnum: number of lines in transcript</div>".
+
 	"<div>example: http://PATH/lineRecognizer.php?ct=i&url=./ham.jpg&t=200&b=1900&l=500&r=1500&lh=20&lnum=38</div>";
+		"<hr/>".
+		"<div>Experimental:</div>".
+		"<div>alg: algorithm [simple|min] Simple algorithm or one based on local mins</div>".
+		"<div>mdpr: minimum dots per row (if there are fewer black dots in a row than the given value, the entire line will be read a blank)</div>".
 	"<div>code is at http://www.github.com/dougreside/LineRecognizer</div>".
 	"</div></BODY></HTML>";
 }
